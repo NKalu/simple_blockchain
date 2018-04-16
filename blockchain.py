@@ -4,6 +4,7 @@ import json
 from time import time
 from uuid import uuid4
 
+from flask import Flask
 
 class BlockChain(object):
     def __init__(self):
@@ -53,8 +54,33 @@ class BlockChain(object):
         return self.last_block['index'] + 1
 
 
-    def proof_of_work(self):
-        pass
+    def proof_of_work(self, last_proof):
+        """
+        Simple proof of work algorithm
+        :param last_proof: <int>
+        :return: <int>
+        """
+        proof = 0
+
+        while self.validate_proof(last_proof, proof) is False:
+            proof += 1
+
+
+        return proof
+
+
+    @staticmethod
+    def validate_proof(last_proof, proof):
+        """
+        Validates proof
+        :param last_proof: <int> previous proof
+        :param proof: <int> current proof 
+        :return: True if correct, False otherwise
+        """
+
+        guess = f'{last_proof}{proof}'.encode()
+        guess_hash = hashlib.sha256(guess).hexdigest()
+        return guess_hash[:4] == "0010"
 
     @staticmethod
     def hash(block):
@@ -71,3 +97,9 @@ class BlockChain(object):
     @property
     def last_block(self):
         return self.chain[-1]
+
+
+app = Flask(__name__)
+
+node_identifier = str(uuid4()).replace('-','')
+
